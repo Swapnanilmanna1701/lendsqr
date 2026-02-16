@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useRef, useEffect, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import type { User, UserStatus, FilterValues } from "../../types";
 import "./UserTable.scss";
@@ -229,21 +230,34 @@ const UserTable: React.FC<UserTableProps> = ({ users, loading }) => {
   const [filters, setFilters] = useState<FilterValues>({});
   const [filterOpen, setFilterOpen] = useState(false);
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
+  const [menuPosition, setMenuPosition] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
   const menuRef = useRef<HTMLDivElement>(null);
+  const moreBtnRefs = useRef<Record<string, HTMLButtonElement | null>>({});
 
-  // Close action menu on outside click
+  // Close action menu on outside click or scroll
   useEffect(() => {
+    if (!activeMenu) return;
+
     const handleClickOutside = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setActiveMenu(null);
-      }
+      const target = e.target as Node;
+      // Ignore clicks on the menu itself or on any more-button
+      if (menuRef.current && menuRef.current.contains(target)) return;
+      if (moreBtnRefs.current[activeMenu]?.contains(target)) return;
+      setActiveMenu(null);
     };
+
+    const handleScroll = () => setActiveMenu(null);
+
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+    window.addEventListener("scroll", handleScroll, true);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      window.removeEventListener("scroll", handleScroll, true);
+    };
+  }, [activeMenu]);
 
   // Unique organizations for filter dropdown
   const organizations = useMemo(
@@ -292,7 +306,22 @@ const UserTable: React.FC<UserTableProps> = ({ users, loading }) => {
   }, []);
 
   const toggleMenu = (userId: string) => {
-    setActiveMenu((prev) => (prev === userId ? null : userId));
+    if (activeMenu === userId) {
+      setActiveMenu(null);
+      return;
+    }
+
+    // Calculate position in viewport coords (portal renders at body level)
+    const btn = moreBtnRefs.current[userId];
+    if (btn) {
+      const btnRect = btn.getBoundingClientRect();
+      setMenuPosition({
+        top: btnRect.bottom + window.scrollY + 4,
+        left: btnRect.right + window.scrollX - 180, // 180 = menu min-width
+      });
+    }
+
+    setActiveMenu(userId);
   };
 
   const handleViewDetails = (userId: string) => {
@@ -386,28 +415,12 @@ const UserTable: React.FC<UserTableProps> = ({ users, loading }) => {
                     <button
                       className="user-table__more-btn"
                       type="button"
+                      ref={(el) => { moreBtnRefs.current[user.id] = el; }}
                       onClick={() => toggleMenu(user.id)}
                       aria-label="More actions"
                     >
                       <MoreIcon />
                     </button>
-
-                    {activeMenu === user.id && (
-                      <div className="user-table__action-menu" ref={menuRef}>
-                        <button type="button" onClick={() => handleViewDetails(user.id)}>
-                          <EyeIcon />
-                          <span>View Details</span>
-                        </button>
-                        <button type="button" onClick={() => setActiveMenu(null)}>
-                          <UserXIcon />
-                          <span>Blacklist User</span>
-                        </button>
-                        <button type="button" onClick={() => setActiveMenu(null)}>
-                          <UserCheckIcon />
-                          <span>Activate User</span>
-                        </button>
-                      </div>
-                    )}
                   </td>
                 </tr>
               ))
@@ -425,7 +438,31 @@ const UserTable: React.FC<UserTableProps> = ({ users, loading }) => {
             onClose={() => setFilterOpen(false)}
           />
         )}
+
       </div>
+
+      {/* Action menu – rendered via portal to escape overflow clipping */}
+      {activeMenu && createPortal(
+        <div
+          className="user-table__action-menu"
+          ref={menuRef}
+          style={{ top: menuPosition.top, left: menuPosition.left }}
+        >
+          <button type="button" onClick={() => handleViewDetails(activeMenu)}>
+            <EyeIcon />
+            <span>View Details</span>
+          </button>
+          <button type="button" onClick={() => setActiveMenu(null)}>
+            <UserXIcon />
+            <span>Blacklist User</span>
+          </button>
+          <button type="button" onClick={() => setActiveMenu(null)}>
+            <UserCheckIcon />
+            <span>Activate User</span>
+          </button>
+        </div>,
+        document.body,
+      )}
 
       {/* Pagination */}
       <div className="user-table__pagination">
