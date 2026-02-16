@@ -175,12 +175,81 @@ function mapApiUserToUser(apiUser: any): User {
 }
 
 /**
- * Fetch all users (the MockAPI endpoint returns up to 500 records).
+ * Generates a synthetic raw user object (mimicking the MockAPI shape)
+ * from a numeric index.  These are fed through `mapApiUserToUser` so
+ * every generated user gets the same rich, deterministic field set.
+ */
+function generateRawUser(index: number) {
+  const seed = simpleHash(`gen-${index}`);
+
+  const firstNames = [
+    'Adebayo', 'Chinedu', 'Funke', 'Oluwaseun', 'Ngozi',
+    'Ibrahim', 'Temitope', 'Amara', 'Emeka', 'Yetunde',
+    'Obinna', 'Kemi', 'Tunde', 'Aisha', 'Chioma',
+    'Segun', 'Halima', 'Bola', 'Uche', 'Zainab',
+    'Adeola', 'Chidi', 'Folake', 'Gbenga', 'Hauwa',
+    'Ikenna', 'Jumoke', 'Kunle', 'Lola', 'Musa',
+    'Nkechi', 'Olu', 'Patience', 'Rasheed', 'Sade',
+    'Toyin', 'Ugochi', 'Victor', 'Wale', 'Yemi',
+  ];
+  const lastNames = [
+    'Okonkwo', 'Adeyemi', 'Balogun', 'Nwosu', 'Akinola',
+    'Obi', 'Mohammed', 'Eze', 'Okafor', 'Adesanya',
+    'Adeleke', 'Chukwu', 'Danjuma', 'Ezeigbo', 'Fashola',
+    'Garba', 'Hassan', 'Igwe', 'Jimoh', 'Kalu',
+    'Lawal', 'Madu', 'Nnamdi', 'Ogundele', 'Peters',
+    'Quadri', 'Rufai', 'Salami', 'Taiwo', 'Usman',
+  ];
+  const orgNames = [
+    'Lendsqr', 'Irorun', 'Lendstar', 'Paystack', 'Kuda',
+    'Flutterwave', 'Interswitch', 'Carbon', 'FairMoney', 'PalmPay',
+    'Moniepoint', 'OPay', 'Piggyvest', 'Cowrywise', 'Bamboo',
+    'Risevest', 'Trove', 'Chipper Cash', 'TeamApt', 'Mono',
+  ];
+
+  const firstName = pickFrom(firstNames, seed);
+  const lastName = pickFrom(lastNames, seed + 1);
+  const userName = `${firstName} ${lastName}`;
+  const email = `${firstName.toLowerCase()}.${lastName.toLowerCase()}${index}@${pickFrom(orgNames, seed + 2).toLowerCase().replace(/\s+/g, '')}.com`;
+  const phone = `0${pickFrom([70, 80, 81, 90, 91], seed + 3)}${String(seed).padStart(8, '0').slice(0, 8)}`;
+
+  // Spread createdAt dates across 2020-01-01 to 2025-12-31
+  const startMs = new Date('2020-01-01').getTime();
+  const endMs = new Date('2025-12-31').getTime();
+  const createdAt = new Date(startMs + (seed % (endMs - startMs))).toISOString();
+
+  return {
+    id: String(1000 + index),           // IDs start at 1000 to avoid clashes with API users
+    orgName: pickFrom(orgNames, seed + 4),
+    userName,
+    email,
+    phoneNumber: phone,
+    createdAt,
+  };
+}
+
+/** Total number of users the app should expose. */
+const TARGET_USER_COUNT = 500;
+
+/**
+ * Fetch all users.
+ * The MockAPI free-tier returns ~100 records.  To meet the 500-user
+ * target the remaining users are generated locally and merged in.
  */
 export const fetchUsers = async (): Promise<User[]> => {
   try {
     const response = await axios.get(`${API_BASE_URL}/users`);
-    return response.data.map((user: any) => mapApiUserToUser(user));
+    const apiUsers: User[] = response.data.map((user: any) =>
+      mapApiUserToUser(user),
+    );
+
+    // Generate enough extra users to reach the target count
+    const extraCount = Math.max(0, TARGET_USER_COUNT - apiUsers.length);
+    const generatedUsers: User[] = Array.from({ length: extraCount }, (_, i) =>
+      mapApiUserToUser(generateRawUser(i)),
+    );
+
+    return [...apiUsers, ...generatedUsers];
   } catch (error) {
     console.error('Error fetching users:', error);
     throw error;
@@ -189,8 +258,18 @@ export const fetchUsers = async (): Promise<User[]> => {
 
 /**
  * Fetch a single user by their id.
+ * For locally-generated users (id >= 1000) we reconstruct the user
+ * from the same deterministic generator instead of hitting the API.
  */
 export const fetchUserById = async (id: string): Promise<User> => {
+  const numericId = Number(id);
+
+  // Locally-generated users have IDs starting at 1000
+  if (numericId >= 1000) {
+    const index = numericId - 1000;
+    return mapApiUserToUser(generateRawUser(index));
+  }
+
   try {
     const response = await axios.get(`${API_BASE_URL}/users/${id}`);
     return mapApiUserToUser(response.data);
