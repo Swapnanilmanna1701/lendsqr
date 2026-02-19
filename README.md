@@ -4,7 +4,7 @@ A pixel-perfect implementation of the Lendsqr admin console, built as part of th
 
 ## Live Demo
 
-[Deployed URL here]
+[Live Demo](https://lendsqr-fe-test-woad-phi.vercel.app)
 
 ## Figma Design
 
