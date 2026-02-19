@@ -387,6 +387,32 @@ const UserTable: React.FC<UserTableProps> = ({ users, loading }) => {
 
   return (
     <div className="user-table">
+      {/* Mobile filter button */}
+      <div className="user-table__mobile-filter-bar">
+        <button
+          className="user-table__mobile-filter-toggle"
+          type="button"
+          onClick={() => setFilterOpen((prev) => !prev)}
+        >
+          <FilterIcon />
+          <span>Filter</span>
+        </button>
+      </div>
+
+      {/* Filter popup – rendered outside the table wrapper for mobile */}
+      <div className="user-table__filter-container">
+        {filterOpen && (
+          <FilterPopup
+            organizations={organizations}
+            filters={filters}
+            onChange={handleFilterChange}
+            onReset={handleFilterReset}
+            onClose={() => setFilterOpen(false)}
+          />
+        )}
+      </div>
+
+      {/* Desktop table view */}
       <div className="user-table__wrapper">
         <table className="user-table__table">
           <thead>
@@ -448,18 +474,53 @@ const UserTable: React.FC<UserTableProps> = ({ users, loading }) => {
             )}
           </tbody>
         </table>
+      </div>
 
-        {/* Filter popup – rendered relative to the table wrapper */}
-        {filterOpen && (
-          <FilterPopup
-            organizations={organizations}
-            filters={filters}
-            onChange={handleFilterChange}
-            onReset={handleFilterReset}
-            onClose={() => setFilterOpen(false)}
-          />
+      {/* Mobile card view */}
+      <div className="user-table__cards">
+        {paginatedUsers.length === 0 ? (
+          <div className="user-table__cards-empty">No users found</div>
+        ) : (
+          paginatedUsers.map((user) => (
+            <div className="user-table__card" key={user.id}>
+              <div className="user-table__card-header">
+                <div className="user-table__card-name">{user.userName}</div>
+                <div className="user-table__card-actions">
+                  <span className={`user-table__status user-table__status--${statusClassMap[user.status]}`}>
+                    {user.status}
+                  </span>
+                  <button
+                    className="user-table__more-btn"
+                    type="button"
+                    ref={(el) => { moreBtnRefs.current[user.id] = el; }}
+                    onClick={() => toggleMenu(user.id)}
+                    aria-label="More actions"
+                  >
+                    <MoreIcon />
+                  </button>
+                </div>
+              </div>
+              <div className="user-table__card-body">
+                <div className="user-table__card-row">
+                  <span className="user-table__card-label">Organization</span>
+                  <span className="user-table__card-value">{user.orgName}</span>
+                </div>
+                <div className="user-table__card-row">
+                  <span className="user-table__card-label">Email</span>
+                  <span className="user-table__card-value">{user.email}</span>
+                </div>
+                <div className="user-table__card-row">
+                  <span className="user-table__card-label">Phone</span>
+                  <span className="user-table__card-value">{user.phoneNumber}</span>
+                </div>
+                <div className="user-table__card-row">
+                  <span className="user-table__card-label">Date Joined</span>
+                  <span className="user-table__card-value">{formatDate(user.createdAt)}</span>
+                </div>
+              </div>
+            </div>
+          ))
         )}
-
       </div>
 
       {/* Action menu – rendered via portal to escape overflow clipping */}

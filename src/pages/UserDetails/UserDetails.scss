@@ -2,16 +2,8 @@
 @use '../../scss/mixins' as *;
 
 .user-details {
-  padding: 60px 30px 40px;
+  padding: 0;
   font-family: $font-family;
-
-  @include tablet {
-    padding: 40px 20px;
-  }
-
-  @include mobile {
-    padding: 24px 16px;
-  }
 
   /* ================================================================== */
   /*  Loading & Error states                                            */
@@ -327,11 +319,27 @@
     border-top: 1px solid rgba(33, 63, 125, 0.1);
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
+    position: relative;
 
     /* Hide scrollbar */
     scrollbar-width: none;
     &::-webkit-scrollbar {
       display: none;
+    }
+
+    /* Fade indicator on mobile to hint at scrollable tabs */
+    @include mobile {
+      &::after {
+        content: '';
+        position: sticky;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        min-width: 30px;
+        background: linear-gradient(to right, transparent, $white);
+        pointer-events: none;
+        flex-shrink: 0;
+      }
     }
   }
 
@@ -421,7 +429,7 @@
     }
 
     @include mobile {
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: 1fr;
       row-gap: 20px;
     }
   }

@@ -57,6 +57,16 @@ function renderWithRouter(ui: React.ReactElement) {
   return render(<BrowserRouter>{ui}</BrowserRouter>);
 }
 
+/**
+ * Helper: get the desktop table wrapper (the <div class="user-table__wrapper">)
+ * so we can scope queries to only the table view, avoiding duplicates from the
+ * mobile card view that is also rendered (but hidden via CSS).
+ */
+function getTableWrapper() {
+  // eslint-disable-next-line testing-library/no-node-access
+  return document.querySelector(".user-table__wrapper") as HTMLElement;
+}
+
 describe("UserTable", () => {
   beforeEach(() => {
     mockNavigate.mockClear();
@@ -69,7 +79,9 @@ describe("UserTable", () => {
 
   it('shows "No users found" when users array is empty', () => {
     renderWithRouter(<UserTable users={[]} loading={false} />);
-    expect(screen.getByText("No users found")).toBeInTheDocument();
+    // Both table and card views show "No users found"
+    const matches = screen.getAllByText("No users found");
+    expect(matches.length).toBeGreaterThanOrEqual(1);
   });
 
   it("renders table headers correctly", () => {
@@ -90,10 +102,12 @@ describe("UserTable", () => {
   it("renders user data in table rows", () => {
     const user = createMockUser();
     renderWithRouter(<UserTable users={[user]} loading={false} />);
-    expect(screen.getByText("Lendsqr")).toBeInTheDocument();
-    expect(screen.getByText("johndoe")).toBeInTheDocument();
-    expect(screen.getByText("john@lendsqr.com")).toBeInTheDocument();
-    expect(screen.getByText("08012345678")).toBeInTheDocument();
+    const table = getTableWrapper();
+    const tableScope = within(table);
+    expect(tableScope.getByText("Lendsqr")).toBeInTheDocument();
+    expect(tableScope.getByText("johndoe")).toBeInTheDocument();
+    expect(tableScope.getByText("john@lendsqr.com")).toBeInTheDocument();
+    expect(tableScope.getByText("08012345678")).toBeInTheDocument();
   });
 
   it("displays correct status badges", () => {
@@ -104,11 +118,13 @@ describe("UserTable", () => {
       createMockUser({ id: "4", status: "Blacklisted" }),
     ];
     renderWithRouter(<UserTable users={users} loading={false} />);
+    const table = getTableWrapper();
+    const tableScope = within(table);
 
-    expect(screen.getByText("Active")).toHaveClass("user-table__status--active");
-    expect(screen.getByText("Inactive")).toHaveClass("user-table__status--inactive");
-    expect(screen.getByText("Pending")).toHaveClass("user-table__status--pending");
-    expect(screen.getByText("Blacklisted")).toHaveClass("user-table__status--blacklisted");
+    expect(tableScope.getByText("Active")).toHaveClass("user-table__status--active");
+    expect(tableScope.getByText("Inactive")).toHaveClass("user-table__status--inactive");
+    expect(tableScope.getByText("Pending")).toHaveClass("user-table__status--pending");
+    expect(tableScope.getByText("Blacklisted")).toHaveClass("user-table__status--blacklisted");
   });
 
   it('shows pagination info ("Showing X out of Y")', () => {
@@ -131,15 +147,18 @@ describe("UserTable", () => {
     );
     renderWithRouter(<UserTable users={users} loading={false} />);
 
-    // Initially on page 1 — first user should be visible
-    expect(screen.getByText("user1")).toBeInTheDocument();
+    const table = getTableWrapper();
+    const tableScope = within(table);
+
+    // Initially on page 1 — first user should be visible in the table
+    expect(tableScope.getByText("user1")).toBeInTheDocument();
 
     // Click the "Next page" button
     const nextBtn = screen.getByLabelText("Next page");
     await user.click(nextBtn);
 
     // After navigating, user11 should be visible (page 2 with 10 items per page)
-    expect(screen.getByText("user11")).toBeInTheDocument();
+    expect(tableScope.getByText("user11")).toBeInTheDocument();
   });
 
   it("opens action menu when more button is clicked", async () => {
@@ -148,7 +167,10 @@ describe("UserTable", () => {
       <UserTable users={[createMockUser()]} loading={false} />
     );
 
-    const moreBtn = screen.getByLabelText("More actions");
+    // Get the more button from the table view specifically
+    const table = getTableWrapper();
+    const tableScope = within(table);
+    const moreBtn = tableScope.getByLabelText("More actions");
     await user.click(moreBtn);
 
     expect(screen.getByText("View Details")).toBeInTheDocument();

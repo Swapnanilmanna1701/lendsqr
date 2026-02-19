@@ -22,8 +22,10 @@ const StatsCard: React.FC<StatsCardProps> = ({
       >
         {icon}
       </div>
-      <p className="stats-card__title">{title}</p>
-      <h3 className="stats-card__value">{value}</h3>
+      <div className="stats-card__content">
+        <p className="stats-card__title">{title}</p>
+        <h3 className="stats-card__value">{value}</h3>
+      </div>
     </div>
   );
 };

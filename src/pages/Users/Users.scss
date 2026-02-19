@@ -7,6 +7,16 @@
     font-weight: 500;
     color: $text-primary;
     margin-bottom: 40px;
+
+    @include tablet {
+      font-size: 22px;
+      margin-bottom: 24px;
+    }
+
+    @include mobile {
+      font-size: 20px;
+      margin-bottom: 20px;
+    }
   }
 
   &__stats {
@@ -19,8 +29,15 @@
       grid-template-columns: repeat(2, 1fr);
     }
 
+    @include tablet {
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
     @include mobile {
       grid-template-columns: 1fr;
+      gap: 12px;
+      margin-bottom: 20px;
     }
   }
 

@@ -8,6 +8,7 @@ interface NavbarProps {
 
 const Navbar = ({ onMenuToggle }: NavbarProps) => {
   const [searchValue, setSearchValue] = useState("");
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
 
   const displayName = useMemo(() => {
     const auth = getFromLocalStorage<{ email: string }>("lendsqr_auth");
@@ -95,6 +96,26 @@ const Navbar = ({ onMenuToggle }: NavbarProps) => {
       </div>
 
       <div className="navbar__right">
+        {/* Mobile search toggle button */}
+        <button
+          className="navbar__mobile-search-toggle"
+          onClick={() => setMobileSearchOpen((prev) => !prev)}
+          aria-label="Toggle search"
+        >
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 14 14"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M5.3837 0C2.41095 0 0 2.41095 0 5.3837C0 8.35645 2.41095 10.7674 5.3837 10.7674C6.5898 10.7674 7.70463 10.3839 8.61653 9.73811L12.0386 13.1602C12.348 13.4468 12.8263 13.4365 13.1234 13.137C13.4087 12.8494 13.4087 12.3899 13.1234 12.1023L9.73811 8.61653C10.3839 7.70463 10.7674 6.5898 10.7674 5.3837C10.7674 2.41095 8.35645 0 5.3837 0ZM5.3837 1.49547C7.53702 1.49547 9.27193 3.23038 9.27193 5.3837C9.27193 7.53702 7.53702 9.27193 5.3837 9.27193C3.23038 9.27193 1.49547 7.53702 1.49547 5.3837C1.49547 3.23038 3.23038 1.49547 5.3837 1.49547Z"
+              fill="#213F7D"
+            />
+          </svg>
+        </button>
+
         <a href="#" className="navbar__docs">
           Docs
         </a>
@@ -150,6 +171,34 @@ const Navbar = ({ onMenuToggle }: NavbarProps) => {
           </svg>
         </div>
       </div>
+
+      {/* Mobile search dropdown */}
+      {mobileSearchOpen && (
+        <div className="navbar__mobile-search">
+          <input
+            type="text"
+            className="navbar__mobile-search-input"
+            placeholder="Search for anything"
+            value={searchValue}
+            onChange={(e) => setSearchValue(e.target.value)}
+            autoFocus
+          />
+          <button className="navbar__mobile-search-btn" aria-label="Search">
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 14 14"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M5.3837 0C2.41095 0 0 2.41095 0 5.3837C0 8.35645 2.41095 10.7674 5.3837 10.7674C6.5898 10.7674 7.70463 10.3839 8.61653 9.73811L12.0386 13.1602C12.348 13.4468 12.8263 13.4365 13.1234 13.137C13.4087 12.8494 13.4087 12.3899 13.1234 12.1023L9.73811 8.61653C10.3839 7.70463 10.7674 6.5898 10.7674 5.3837C10.7674 2.41095 8.35645 0 5.3837 0ZM5.3837 1.49547C7.53702 1.49547 9.27193 3.23038 9.27193 5.3837C9.27193 7.53702 7.53702 9.27193 5.3837 9.27193C3.23038 9.27193 1.49547 7.53702 1.49547 5.3837C1.49547 3.23038 3.23038 1.49547 5.3837 1.49547Z"
+                fill="white"
+              />
+            </svg>
+          </button>
+        </div>
+      )}
     </nav>
   );
 };

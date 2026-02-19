@@ -20,11 +20,6 @@ const DashboardLayout: React.FC = () => {
       <Navbar onMenuToggle={toggleSidebar} />
       <Sidebar isOpen={sidebarOpen} onClose={closeSidebar} />
 
-      {/* Overlay for mobile when sidebar is open */}
-      {sidebarOpen && (
-        <div className="dashboard-layout__overlay" onClick={closeSidebar} />
-      )}
-
       <main className="dashboard-layout__main">
         <Outlet />
       </main>

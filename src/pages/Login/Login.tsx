@@ -233,6 +233,37 @@ const Login = () => {
       {/* ---- RIGHT SIDE ---- */}
       <div className="login-page__right">
         <div className="login-page__form-wrapper">
+          {/* Mobile logo – visible only when left panel is hidden */}
+          <div className="login-page__mobile-logo">
+            <svg
+              width="173"
+              height="36"
+              viewBox="0 0 173 36"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <g>
+                <path
+                  d="M17.44 0C7.808 0 0 7.808 0 17.44c0 5.663 2.705 10.69 6.89 13.882l3.528-6.108a8.72 8.72 0 0 1-2.698-6.334c0-4.836 3.924-8.76 8.76-8.76a8.72 8.72 0 0 1 6.335 2.698l6.107-3.528C25.43 4.505 21.803 1.8 17.44 0z"
+                  fill="#213F7D"
+                />
+                <path
+                  d="M17.44 26.16c-4.836 0-8.76-3.924-8.76-8.76 0-1.513.392-2.935 1.072-4.178l-6.107-3.528A17.28 17.28 0 0 0 0 17.44c0 9.632 7.808 17.44 17.44 17.44 2.683 0 5.224-.612 7.498-1.694l-3.528-6.108a8.67 8.67 0 0 1-3.97.922z"
+                  fill="#39CDCC"
+                />
+              </g>
+              <text
+                x="42"
+                y="27"
+                fontFamily="'Work Sans', sans-serif"
+                fontSize="28"
+                fontWeight="700"
+                fill="#213F7D"
+              >
+                lendsqr
+              </text>
+            </svg>
+          </div>
           <h1 className="login-page__heading">Welcome!</h1>
           <p className="login-page__subtitle">Enter details to login.</p>
 

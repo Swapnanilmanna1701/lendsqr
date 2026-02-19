@@ -8,16 +8,43 @@
   padding: 30px;
   box-shadow: $box-shadow;
 
+  @include tablet {
+    padding: 24px 20px;
+  }
+
+  @include mobile {
+    padding: 20px 16px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
   &__icon {
     width: 40px;
     height: 40px;
     border-radius: 50%;
     @include flex-center;
+    flex-shrink: 0;
 
     svg {
       width: 22px;
       height: 22px;
     }
+
+    @include mobile {
+      width: 36px;
+      height: 36px;
+
+      svg {
+        width: 18px;
+        height: 18px;
+      }
+    }
+  }
+
+  &__content {
+    flex: 1;
+    min-width: 0;
   }
 
   &__title {
@@ -27,6 +54,11 @@
     text-transform: uppercase;
     margin-top: 14px;
     letter-spacing: 0.04em;
+
+    @include mobile {
+      margin-top: 0;
+      font-size: 12px;
+    }
   }
 
   &__value {
@@ -34,5 +66,10 @@
     font-weight: 600;
     color: $text-primary;
     margin-top: 12px;
+
+    @include mobile {
+      font-size: 20px;
+      margin-top: 6px;
+    }
   }
 }
