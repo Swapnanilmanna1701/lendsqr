@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import StatsCard from "../../components/StatsCard";
 import UserTable from "../../components/UserTable";
-import type { User } from "../../types";
+import type { User, UserStatus } from "../../types";
 import { fetchUsers } from "../../services/api";
 import { saveAllUsers, getAllUsers } from "../../utils/indexedDB";
 import "./Users.scss";
@@ -131,6 +131,12 @@ const Users: React.FC = () => {
     loadUsers();
   }, []);
 
+  const handleStatusChange = useCallback((userId: string, newStatus: UserStatus) => {
+    setUsers((prev) =>
+      prev.map((u) => (u.id === userId ? { ...u, status: newStatus } : u))
+    );
+  }, []);
+
   const activeUsers = users.filter((u) => u.status === "Active").length;
   const usersWithLoans = Math.round(users.length * 0.3);
   const usersWithSavings = Math.round(users.length * 0.6);
@@ -189,7 +195,7 @@ const Users: React.FC = () => {
         ))}
       </div>
 
-      <UserTable users={users} loading={loading} />
+      <UserTable users={users} loading={loading} onStatusChange={handleStatusChange} />
     </div>
   );
 };

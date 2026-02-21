@@ -117,7 +117,8 @@ const FilterPopup: React.FC<FilterPopupProps> = ({
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node)) {
-        onClose();
+        // Defer closing so that other click handlers (e.g. three-dot menu) fire first
+        requestAnimationFrame(() => onClose());
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -243,41 +244,41 @@ const FilterPopup: React.FC<FilterPopupProps> = ({
 interface UserTableProps {
   users: User[];
   loading: boolean;
+  onStatusChange?: (userId: string, newStatus: "Active" | "Blacklisted") => void;
 }
 
-const UserTable: React.FC<UserTableProps> = ({ users, loading }) => {
+const UserTable: React.FC<UserTableProps> = ({ users, loading, onStatusChange }) => {
   const navigate = useNavigate();
 
   const [filters, setFilters] = useState<FilterValues>({});
   const [filterOpen, setFilterOpen] = useState(false);
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
-  const [menuPosition, setMenuPosition] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
+  const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
   const menuRef = useRef<HTMLDivElement>(null);
-  const moreBtnRefs = useRef<Record<string, HTMLButtonElement | null>>({});
+  // Track whether the current click is the one that opened the menu
+  const skipNextOutsideClick = useRef(false);
 
-  // Close action menu on outside click or scroll
+  // Close action menu on any click outside
   useEffect(() => {
     if (!activeMenu) return;
 
-    const handleClickOutside = (e: MouseEvent) => {
-      const target = e.target as Node;
-      // Ignore clicks on the menu itself or on any more-button
-      if (menuRef.current && menuRef.current.contains(target)) return;
-      if (moreBtnRefs.current[activeMenu]?.contains(target)) return;
+    const onDocClick = (e: MouseEvent) => {
+      // The click that opened the menu — skip it
+      if (skipNextOutsideClick.current) {
+        skipNextOutsideClick.current = false;
+        return;
+      }
+      const target = e.target as HTMLElement;
+      if (menuRef.current?.contains(target)) return;
       setActiveMenu(null);
     };
 
-    const handleScroll = () => setActiveMenu(null);
-
-    document.addEventListener("mousedown", handleClickOutside);
-    window.addEventListener("scroll", handleScroll, true);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-      window.removeEventListener("scroll", handleScroll, true);
-    };
+    // Use capture phase so we always hear the click before anything else
+    document.addEventListener("click", onDocClick, true);
+    return () => document.removeEventListener("click", onDocClick, true);
   }, [activeMenu]);
 
   // Unique organizations for filter dropdown
@@ -326,28 +327,36 @@ const UserTable: React.FC<UserTableProps> = ({ users, loading }) => {
     setFilters({});
   }, []);
 
-  const toggleMenu = (userId: string) => {
+  const toggleMenu = (e: React.MouseEvent, userId: string) => {
     if (activeMenu === userId) {
       setActiveMenu(null);
       return;
     }
-
-    // Calculate position in viewport coords (portal renders at body level)
-    const btn = moreBtnRefs.current[userId];
-    if (btn) {
-      const btnRect = btn.getBoundingClientRect();
-      setMenuPosition({
-        top: btnRect.bottom + window.scrollY + 4,
-        left: btnRect.right + window.scrollX - 180, // 180 = menu min-width
-      });
-    }
-
+    // Position the portal menu near the clicked button
+    const btn = e.currentTarget as HTMLElement;
+    const rect = btn.getBoundingClientRect();
+    setMenuPos({
+      top: rect.bottom + 4,
+      left: rect.right - 180, // 180 = menu min-width
+    });
+    // Tell the outside-click handler to ignore this very click
+    skipNextOutsideClick.current = true;
     setActiveMenu(userId);
   };
 
   const handleViewDetails = (userId: string) => {
     setActiveMenu(null);
     navigate(`/dashboard/users/${userId}`);
+  };
+
+  const handleBlacklistUser = (userId: string) => {
+    setActiveMenu(null);
+    onStatusChange?.(userId, "Blacklisted");
+  };
+
+  const handleActivateUser = (userId: string) => {
+    setActiveMenu(null);
+    onStatusChange?.(userId, "Active");
   };
 
   // Generate page numbers for pagination
@@ -462,8 +471,7 @@ const UserTable: React.FC<UserTableProps> = ({ users, loading }) => {
                     <button
                       className="user-table__more-btn"
                       type="button"
-                      ref={(el) => { moreBtnRefs.current[user.id] = el; }}
-                      onClick={() => toggleMenu(user.id)}
+                      onClick={(e) => toggleMenu(e, user.id)}
                       aria-label="More actions"
                     >
                       <MoreIcon />
@@ -492,8 +500,7 @@ const UserTable: React.FC<UserTableProps> = ({ users, loading }) => {
                   <button
                     className="user-table__more-btn"
                     type="button"
-                    ref={(el) => { moreBtnRefs.current[user.id] = el; }}
-                    onClick={() => toggleMenu(user.id)}
+                    onClick={(e) => toggleMenu(e, user.id)}
                     aria-label="More actions"
                   >
                     <MoreIcon />
@@ -523,22 +530,22 @@ const UserTable: React.FC<UserTableProps> = ({ users, loading }) => {
         )}
       </div>
 
-      {/* Action menu – rendered via portal to escape overflow clipping */}
+      {/* Action menu – portal to body so it escapes overflow clipping */}
       {activeMenu && createPortal(
         <div
           className="user-table__action-menu"
           ref={menuRef}
-          style={{ top: menuPosition.top, left: menuPosition.left }}
+          style={{ position: "fixed", top: menuPos.top, left: menuPos.left }}
         >
           <button type="button" onClick={() => handleViewDetails(activeMenu)}>
             <EyeIcon />
             <span>View Details</span>
           </button>
-          <button type="button" onClick={() => setActiveMenu(null)}>
+          <button type="button" onClick={() => handleBlacklistUser(activeMenu)}>
             <UserXIcon />
             <span>Blacklist User</span>
           </button>
-          <button type="button" onClick={() => setActiveMenu(null)}>
+          <button type="button" onClick={() => handleActivateUser(activeMenu)}>
             <UserCheckIcon />
             <span>Activate User</span>
           </button>

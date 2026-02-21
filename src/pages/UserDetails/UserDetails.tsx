@@ -129,13 +129,13 @@ const UserDetails = () => {
   );
 
   const AvatarIcon = () => (
-    <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg width="100" height="100" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path
-        d="M20 20C23.866 20 27 16.866 27 13C27 9.134 23.866 6 20 6C16.134 6 13 9.134 13 13C13 16.866 16.134 20 20 20Z"
+        d="M50 50C59.665 50 67.5 42.165 67.5 32.5C67.5 22.835 59.665 15 50 15C40.335 15 32.5 22.835 32.5 32.5C32.5 42.165 40.335 50 50 50Z"
         fill="#213F7D" opacity="0.4"
       />
       <path
-        d="M20 23C13.37 23 8 27.03 8 32V34H32V32C32 27.03 26.63 23 20 23Z"
+        d="M50 57.5C33.425 57.5 20 67.575 20 80V85H80V80C80 67.575 66.575 57.5 50 57.5Z"
         fill="#213F7D" opacity="0.4"
       />
     </svg>

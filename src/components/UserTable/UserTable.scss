@@ -143,6 +143,8 @@
     position: relative;
     width: 40px;
     text-align: center;
+    overflow: visible;  /* override truncate mixin so the three-dot button is fully clickable */
+    max-width: none;
   }
 
   &__more-btn {
@@ -159,13 +161,13 @@
     }
   }
 
-  /* ── Action dropdown menu (portalled to body) ── */
+  /* ── Action dropdown menu (portalled to body, fixed positioning) ── */
   &__action-menu {
-    position: absolute;
     background: $white;
     border: 1px solid $border-color;
     border-radius: 4px;
-    box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.12);
+    box-shadow: 3px 5px 20px rgba(0, 0, 0, 0.04),
+                0px 4px 20px rgba(0, 0, 0, 0.04);
     z-index: 300;
     min-width: 180px;
     padding: 10px 0;
@@ -173,16 +175,18 @@
     button {
       display: flex;
       align-items: center;
-      gap: 14px;
+      gap: 13px;
       width: 100%;
-      padding: 12px 20px;
+      padding: 10px 20px;
       background: none;
       border: none;
       cursor: pointer;
       font-size: 14px;
+      font-weight: 500;
       color: $text-secondary;
       font-family: $font-family;
       white-space: nowrap;
+      letter-spacing: 0.02em;
       transition: background 0.15s;
 
       &:hover {

@@ -173,8 +173,9 @@ describe("UserTable", () => {
     const moreBtn = tableScope.getByLabelText("More actions");
     await user.click(moreBtn);
 
-    expect(screen.getByText("View Details")).toBeInTheDocument();
-    expect(screen.getByText("Blacklist User")).toBeInTheDocument();
-    expect(screen.getByText("Activate User")).toBeInTheDocument();
+    // Menu renders in both desktop table and mobile card views
+    expect(screen.getAllByText("View Details").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("Blacklist User").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("Activate User").length).toBeGreaterThanOrEqual(1);
   });
 });
