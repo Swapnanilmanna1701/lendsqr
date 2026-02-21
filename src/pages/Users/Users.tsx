@@ -4,6 +4,7 @@ import UserTable from "../../components/UserTable";
 import type { User, UserStatus } from "../../types";
 import { fetchUsers } from "../../services/api";
 import { saveAllUsers, getAllUsers } from "../../utils/indexedDB";
+import { useSearch } from "../../contexts/SearchContext";
 import "./Users.scss";
 
 const UsersIcon = () => (
@@ -97,6 +98,7 @@ const UsersWithSavingsIcon = () => (
 );
 
 const Users: React.FC = () => {
+  const { searchQuery } = useSearch();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -195,7 +197,7 @@ const Users: React.FC = () => {
         ))}
       </div>
 
-      <UserTable users={users} loading={loading} onStatusChange={handleStatusChange} />
+      <UserTable users={users} loading={loading} onStatusChange={handleStatusChange} searchQuery={searchQuery} />
     </div>
   );
 };

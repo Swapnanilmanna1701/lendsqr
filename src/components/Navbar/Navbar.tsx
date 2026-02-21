@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { getFromLocalStorage } from "../../utils/localStorage";
+import { useSearch } from "../../contexts/SearchContext";
 import "./Navbar.scss";
 
 interface NavbarProps {
@@ -7,7 +8,7 @@ interface NavbarProps {
 }
 
 const Navbar = ({ onMenuToggle }: NavbarProps) => {
-  const [searchValue, setSearchValue] = useState("");
+  const { searchQuery, setSearchQuery } = useSearch();
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
 
   const displayName = useMemo(() => {
@@ -76,10 +77,10 @@ const Navbar = ({ onMenuToggle }: NavbarProps) => {
           type="text"
           className="navbar__search-input"
           placeholder="Search for anything"
-          value={searchValue}
-          onChange={(e) => setSearchValue(e.target.value)}
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
         />
-        <button className="navbar__search-btn" aria-label="Search">
+        <button className="navbar__search-btn" type="button" aria-label="Search">
           <svg
             width="14"
             height="14"
@@ -179,8 +180,8 @@ const Navbar = ({ onMenuToggle }: NavbarProps) => {
             type="text"
             className="navbar__mobile-search-input"
             placeholder="Search for anything"
-            value={searchValue}
-            onChange={(e) => setSearchValue(e.target.value)}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
             autoFocus
           />
           <button className="navbar__mobile-search-btn" aria-label="Search">

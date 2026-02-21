@@ -2,6 +2,7 @@ import React, { useState, useCallback } from "react";
 import { Outlet } from "react-router-dom";
 import Navbar from "../../components/Navbar";
 import Sidebar from "../../components/Sidebar";
+import { SearchProvider } from "../../contexts/SearchContext";
 import "./Dashboard.scss";
 
 const DashboardLayout: React.FC = () => {
@@ -16,14 +17,16 @@ const DashboardLayout: React.FC = () => {
   }, []);
 
   return (
-    <div className="dashboard-layout">
-      <Navbar onMenuToggle={toggleSidebar} />
-      <Sidebar isOpen={sidebarOpen} onClose={closeSidebar} />
+    <SearchProvider>
+      <div className="dashboard-layout">
+        <Navbar onMenuToggle={toggleSidebar} />
+        <Sidebar isOpen={sidebarOpen} onClose={closeSidebar} />
 
-      <main className="dashboard-layout__main">
-        <Outlet />
-      </main>
-    </div>
+        <main className="dashboard-layout__main">
+          <Outlet />
+        </main>
+      </div>
+    </SearchProvider>
   );
 };
 

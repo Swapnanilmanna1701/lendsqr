@@ -245,9 +245,10 @@ interface UserTableProps {
   users: User[];
   loading: boolean;
   onStatusChange?: (userId: string, newStatus: "Active" | "Blacklisted") => void;
+  searchQuery?: string;
 }
 
-const UserTable: React.FC<UserTableProps> = ({ users, loading, onStatusChange }) => {
+const UserTable: React.FC<UserTableProps> = ({ users, loading, onStatusChange, searchQuery = "" }) => {
   const navigate = useNavigate();
 
   const [filters, setFilters] = useState<FilterValues>({});
@@ -287,9 +288,23 @@ const UserTable: React.FC<UserTableProps> = ({ users, loading, onStatusChange })
     [users]
   );
 
-  // Apply filters
+  // Apply search query + column filters
   const filteredUsers = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+
     return users.filter((user) => {
+      // Global search: match against username, email, org, phone, status
+      if (query) {
+        const matchesSearch =
+          user.userName.toLowerCase().includes(query) ||
+          user.email.toLowerCase().includes(query) ||
+          user.orgName.toLowerCase().includes(query) ||
+          user.phoneNumber.toLowerCase().includes(query) ||
+          user.status.toLowerCase().includes(query);
+        if (!matchesSearch) return false;
+      }
+
+      // Column filters
       if (filters.organization && user.orgName !== filters.organization) return false;
       if (filters.username && !user.userName.toLowerCase().includes(filters.username.toLowerCase()))
         return false;
@@ -304,15 +319,15 @@ const UserTable: React.FC<UserTableProps> = ({ users, loading, onStatusChange })
       }
       return true;
     });
-  }, [users, filters]);
+  }, [users, filters, searchQuery]);
 
   // Pagination
   const totalPages = Math.max(1, Math.ceil(filteredUsers.length / itemsPerPage));
 
-  // Reset to page 1 when filters or itemsPerPage change
+  // Reset to page 1 when filters, search, or itemsPerPage change
   useEffect(() => {
     setCurrentPage(1);
-  }, [filters, itemsPerPage]);
+  }, [filters, itemsPerPage, searchQuery]);
 
   const paginatedUsers = useMemo(() => {
     const start = (currentPage - 1) * itemsPerPage;
