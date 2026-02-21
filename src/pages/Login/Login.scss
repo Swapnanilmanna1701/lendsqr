@@ -27,8 +27,10 @@
   &__logo {
     align-self: flex-start;
 
-    svg {
+    img {
       display: block;
+      height: 60px;
+      width: auto;
     }
   }
 
@@ -76,6 +78,11 @@
     display: none;
     margin-bottom: 40px;
 
+    img {
+      height: 50px;
+      width: auto;
+    }
+
     @include tablet {
       display: block;
     }
@@ -83,8 +90,8 @@
     @include mobile {
       margin-bottom: 28px;
 
-      svg {
-        width: 140px;
+      img {
+        width: 180px;
         height: auto;
       }
     }

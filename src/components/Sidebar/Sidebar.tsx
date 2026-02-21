@@ -4,8 +4,8 @@ import { removeFromLocalStorage } from "../../utils/localStorage";
 import "./Sidebar.scss";
 
 interface SidebarProps {
-  isOpen: boolean;
-  onClose: () => void;
+  isOpen?: boolean;
+  onClose?: () => void;
 }
 
 /* ──────────────────── Inline SVG Icons (16x16) ──────────────────── */
@@ -274,7 +274,7 @@ const menuSections: MenuSection[] = [
 
 /* ──────────────────── Sidebar Component ──────────────────── */
 
-const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
+const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => {
   const navigate = useNavigate();
 
   const handleLogout = () => {
